@@ -16,6 +16,7 @@ export class TransactionsService {
   async create(createTransactionDto: CreateTransactionDto, userId: string): Promise<Transactions> {
     const transaction = {
       ...createTransactionDto,
+      amount: createTransactionDto.type === 'INCOME' ? Math.abs(createTransactionDto.amount) : -Math.abs(createTransactionDto.amount),
       userId: userId
     }
     const createdTransaction = new this.transactionModel(transaction);
