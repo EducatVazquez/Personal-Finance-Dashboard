@@ -6,6 +6,7 @@ export const UserSchema = new mongoose.Schema<UserDocument>({
     google_id: { type: String, unique: true }, // Added unique for security
     email: { type: String, required: true, unique: true },    // Added unique
     photo_url: { type: String },
+    balance: { type: Number, default: 0 },
     transactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }],
     password: { type: String, required: true }
 }, {
