@@ -74,6 +74,14 @@ export class TransactionsService {
       }
     ]);
 
+    if (!stats || stats.length === 0) {
+      return {
+        totalIncome: 0,
+        totalExpense: 0,
+        balance: 0
+      };
+    }
+
     return stats[0];
   }
 
