@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Param, Put, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Param, Put, Delete, Query, BadRequestException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
@@ -24,6 +24,15 @@ export class TransactionsController {
   @UseGuards(JwtAuthGuard)
   @Get('stats')
   getStats(@GetUser('userId') userId: string, @Query('month') month: number, @Query('year') year: number) {
+    if (!month || !year) {
+      throw new BadRequestException('Month and year are required');
+    }
+    if (month < 1 || month > 12) {
+      throw new BadRequestException('Month must be between 1 and 12');
+    }
+    if (year < 2000 || year > 2100) {
+      throw new BadRequestException('Year must be between 2000 and 2100');
+    }
     return this.transactionsService.getMonthlyStats(userId, month, year);
   }
 
