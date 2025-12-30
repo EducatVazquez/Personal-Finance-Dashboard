@@ -1,9 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 /* import { OAuth2Client } from 'google-auth-library'; */
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserDocument } from '@/users/interfaces/users.interface'; // Import the Document interface
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserDto } from '@/users/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -63,6 +64,18 @@ export class AuthService {
 
         } catch (error) {
             throw new UnauthorizedException('Invalid Google Token');
+        }
+    }
+
+    async register(createUserDto: CreateUserDto) {
+        try {
+            return await this.userModel.create(createUserDto);
+        } catch (error) {
+            console.log('ERROR', error)
+            if (error.code === 11000) {
+                throw new ConflictException('This email already exists');
+            }
+            throw error;
         }
     }
 }
