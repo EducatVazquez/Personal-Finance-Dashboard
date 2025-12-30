@@ -50,6 +50,33 @@ export class TransactionsService {
       .exec();
   }
 
+  async getMonthlyStats(userId: string, month: number, year: number) {
+    const startDate = new Date(year, month - 1, 1); // First day of the month
+    const endDate = new Date(year, month, 1);      // First day of the NEXT month
+
+    const stats = await this.transactionModel.aggregate([
+      {
+        $match: {
+          userId: userId,
+          date: {
+            $gte: startDate, // Start of current month
+            $lt: endDate     // Before start of next month
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalIncome: { $sum: { $cond: [{ $eq: ["$type", "INCOME"] }, "$amount", 0] } },
+          totalExpense: { $sum: { $cond: [{ $eq: ["$type", "EXPENSE"] }, "$amount", 0] } },
+          balance: { $sum: "$amount" }
+        }
+      }
+    ]);
+
+    return stats[0];
+  }
+
   async findOneById(id: string): Promise<Transactions> {
     const transaction = await this.transactionModel.findById(id).exec();
 
