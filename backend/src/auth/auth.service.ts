@@ -69,7 +69,12 @@ export class AuthService {
 
     async register(createUserDto: CreateUserDto) {
         try {
-            return await this.userModel.create(createUserDto);
+            const user = await this.userModel.create(createUserDto);
+            const jwtPayload = { sub: user._id, email: user.email };
+            return {
+                user,
+                access_token: this.jwtService.sign(jwtPayload)
+            };
         } catch (error) {
             console.log('ERROR', error)
             if (error.code === 11000) {
