@@ -10,5 +10,7 @@ export interface IUser {
     password?: string;
 }
 
+export interface UserToClient extends Pick<IUser, 'name' | 'balance' | 'email'> { }
+
 // This is what the Model needs
 export interface UserDocument extends IUser, Document { }

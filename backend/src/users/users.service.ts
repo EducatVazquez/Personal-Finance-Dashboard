@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -24,12 +24,24 @@ export class UsersService {
     }
   }
 
-  find(userId: string) {
-    return this.userModel.findById(userId).exec();
+  async find(userId: string): Promise<UserDocument> {
+    const user = await this.userModel.findById(userId).exec();
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    return user;
   }
 
-  update(userId: string, updateUserDto: UpdateUserDto) {
-    return this.userModel.findByIdAndUpdate(userId, updateUserDto, { new: true }).exec();
+  async update(userId: string, updateUserDto: UpdateUserDto): Promise<UserDocument> {
+    const updatedUser = await this.userModel.findByIdAndUpdate(userId, updateUserDto, { new: true }).exec();
+
+    if (!updatedUser) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    return updatedUser;
   }
 
   remove(id: number) {

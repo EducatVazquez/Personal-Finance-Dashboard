@@ -5,20 +5,37 @@ import { Transactions } from './interfaces/transactions.interface';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
+import { UserDocument } from '@/users/interfaces/users.interface';
 
 @Injectable()
 export class TransactionsService {
   constructor(
     @InjectModel('Transaction')
     private transactionModel: Model<Transactions>,
+    @InjectModel('User')
+    private userModel: Model<UserDocument>,
   ) { }
 
   async create(createTransactionDto: CreateTransactionDto, userId: string): Promise<Transactions> {
+    // 1. Determine the actual numeric change (positive for income, negative for expense)
+    const amountDelta = createTransactionDto.type === 'INCOME'
+      ? Math.abs(createTransactionDto.amount)
+      : -Math.abs(createTransactionDto.amount);
+
     const transaction = {
       ...createTransactionDto,
-      amount: createTransactionDto.type === 'INCOME' ? Math.abs(createTransactionDto.amount) : -Math.abs(createTransactionDto.amount),
+      amount: amountDelta, // Use the signed number here
       userId: userId
-    }
+    };
+
+    // 2. Update the user balance using the same delta
+    // If amountDelta is -50, $inc will correctly decrease the balance.
+    await this.userModel.findByIdAndUpdate(
+      userId,
+      { $inc: { balance: amountDelta } }
+    ).exec();
+
+    // 3. Save the transaction record
     const createdTransaction = new this.transactionModel(transaction);
     return createdTransaction.save();
   }
