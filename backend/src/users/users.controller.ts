@@ -8,14 +8,10 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.usersService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  find(@GetUser('userId') userId: string) {
+    return this.usersService.find(userId);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -24,12 +24,8 @@ export class UsersService {
     }
   }
 
-  findAll() {
-    return `This action returns all users`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  find(userId: string) {
+    return this.userModel.findById(userId).exec();
   }
 
   update(userId: string, updateUserDto: UpdateUserDto) {
