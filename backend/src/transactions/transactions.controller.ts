@@ -44,8 +44,8 @@ export class TransactionsController {
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateTransactionDto: UpdateTransactionDto) {
-    return this.transactionsService.update(id, updateTransactionDto);
+  update(@GetUser('userId') userId: string, @Param('id') id: string, @Body() updateTransactionDto: UpdateTransactionDto) {
+    return this.transactionsService.update(id, updateTransactionDto, userId);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -16,11 +16,16 @@ export class TransactionsService {
     private userModel: Model<UserDocument>,
   ) { }
 
+  private getAmountAccordingToTypeOfTransaction(type: string, amount: number) {
+    const amountDelta = type === 'INCOME'
+      ? Math.abs(amount)
+      : -Math.abs(amount);
+    return amountDelta;
+  }
+
   async create(createTransactionDto: CreateTransactionDto, userId: string): Promise<Transactions> {
     // 1. Determine the actual numeric change (positive for income, negative for expense)
-    const amountDelta = createTransactionDto.type === 'INCOME'
-      ? Math.abs(createTransactionDto.amount)
-      : -Math.abs(createTransactionDto.amount);
+    const amountDelta = this.getAmountAccordingToTypeOfTransaction(createTransactionDto.type, createTransactionDto.amount);
 
     const transaction = {
       ...createTransactionDto,
@@ -95,7 +100,10 @@ export class TransactionsService {
     return transaction;
   }
 
-  async update(id: string, updateTransactionDto: UpdateTransactionDto): Promise<Transactions> {
+  async update(id: string, updateTransactionDto: UpdateTransactionDto, userId: string): Promise<Transactions> {
+
+    const updatedBalance = await this.userModel.findByIdAndUpdate(userId, { $inc: { balance: this.getAmountAccordingToTypeOfTransaction(updateTransactionDto.type, updateTransactionDto.amount) } });
+
     const updatedTransaction = await this.transactionModel.findByIdAndUpdate(id, updateTransactionDto, { new: true }).exec();
 
     if (!updatedTransaction) {
