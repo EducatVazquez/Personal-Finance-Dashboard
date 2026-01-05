@@ -1,6 +1,6 @@
 
-import { Model } from 'mongoose';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { isValidObjectId, Model } from 'mongoose';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Transactions } from './interfaces/transactions.interface';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -32,12 +32,15 @@ export class TransactionsService {
     // 1. Determine the actual numeric change (positive for income, negative for expense)
     let category: CategoryDocument | null = null;
     if (createTransactionDto.category_id) {
+      if (!isValidObjectId(createTransactionDto.category_id)) {
+        throw new BadRequestException('Invalid category ID');
+      }
       category = await this.categoryModel.findById(createTransactionDto.category_id);
       if (!category) {
         throw new NotFoundException(`Category with ID ${createTransactionDto.category_id} not found`);
       }
     } else {
-      category = await this.categoriesService.findOrCreate(null, createTransactionDto.newCategoryName, userId);
+      category = await this.categoriesService.findOrCreate(createTransactionDto.newCategoryName, userId);
     }
 
     const amountDelta = this.getAmountAccordingToTypeOfTransaction(createTransactionDto.type, createTransactionDto.amount);

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CategoryDocument } from './interfaces/ICategoriesDocument.interface';
@@ -32,15 +32,28 @@ export class CategoriesService {
     }
   }
 
-  async findOrCreate(id: string | null, name: string, userId: string | null) {
-    if (id) {
-      return await this.categoryModel.findById(id);
+  async findOrCreate(name: string, userId: string | null): Promise<CategoryDocument> {
+    // 1. Validation: Ensure we actually have a name before proceeding
+    if (!name) {
+      throw new BadRequestException('Category name is required to create a new category');
     }
 
-    let category = await this.categoryModel.findOne({ name });
+    const cleanName = name.trim();
+
+    // 2. Look for the category (Global or User-specific)
+    let category = await this.categoryModel.findOne({
+      name: cleanName,
+      userId: null
+    });
+
+    // 3. Create if it doesn't exist
     if (!category) {
-      category = await this.categoryModel.create({ name, userId });
+      category = await this.categoryModel.create({
+        name: cleanName,
+        userId
+      });
     }
+
     return category;
   }
 
