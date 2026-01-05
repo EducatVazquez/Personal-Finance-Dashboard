@@ -6,6 +6,8 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { UserDocument } from '@/users/interfaces/users.interface';
+import { CategoryDocument } from '@/categories/interfaces/ICategoriesDocument.interface';
+import { CategoriesService } from '@/categories/categories.service';
 
 @Injectable()
 export class TransactionsService {
@@ -14,6 +16,9 @@ export class TransactionsService {
     private transactionModel: Model<Transactions>,
     @InjectModel('User')
     private userModel: Model<UserDocument>,
+    @InjectModel('Category')
+    private categoryModel: Model<CategoryDocument>,
+    private categoriesService: CategoriesService,
   ) { }
 
   private getAmountAccordingToTypeOfTransaction(type: string, amount: number) {
@@ -25,12 +30,23 @@ export class TransactionsService {
 
   async create(createTransactionDto: CreateTransactionDto, userId: string): Promise<Transactions> {
     // 1. Determine the actual numeric change (positive for income, negative for expense)
+    let category: CategoryDocument | null = null;
+    if (createTransactionDto.category_id) {
+      category = await this.categoryModel.findById(createTransactionDto.category_id);
+      if (!category) {
+        throw new NotFoundException(`Category with ID ${createTransactionDto.category_id} not found`);
+      }
+    } else {
+      category = await this.categoriesService.findOrCreate(null, createTransactionDto.newCategoryName, userId);
+    }
+
     const amountDelta = this.getAmountAccordingToTypeOfTransaction(createTransactionDto.type, createTransactionDto.amount);
 
     const transaction = {
       ...createTransactionDto,
       amount: amountDelta, // Use the signed number here
-      userId: userId
+      userId: userId,
+      category_id: category?._id
     };
 
     // 2. Update the user balance using the same delta
