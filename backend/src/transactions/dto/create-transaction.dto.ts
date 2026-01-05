@@ -1,10 +1,15 @@
 import { IsDate, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { ITransaction, TransactionType } from "@/transactions/interfaces/ITransactions.interface";
 import { Type } from "class-transformer";
+import { IsRequiredIfNoId } from "@/decorators/isRequiredIfNoId.decorator";
 
 export class CreateTransactionDto implements Omit<ITransaction, "userId"> {
     @IsString()
+    @IsOptional()
     category_id: string;
+    @IsRequiredIfNoId()
+    @IsString()
+    newCategoryName: string;
     @IsNumber()
     amount: number;
     @IsDate()
