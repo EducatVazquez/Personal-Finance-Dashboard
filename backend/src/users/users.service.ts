@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UserDocument } from './interfaces/users.interface';
+import { UserDocument, UserToClient } from './interfaces/users.interface';
 
 @Injectable()
 export class UsersService {
@@ -24,14 +24,17 @@ export class UsersService {
     }
   }
 
-  async find(userId: string): Promise<UserDocument> {
-    const user = await this.userModel.findById(userId).exec();
+  async find(userId: string): Promise<UserToClient> {
+    const user = await this.userModel
+      .findById(userId)
+      .select('name balance email') // Include only these
+      .lean(); // Converts Mongoose document to a plain JavaScript object
 
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    return user;
+    return user as UserToClient;
   }
 
   async update(userId: string, updateUserDto: UpdateUserDto): Promise<UserDocument> {
