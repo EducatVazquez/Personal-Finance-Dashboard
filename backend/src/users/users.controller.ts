@@ -5,7 +5,7 @@ import { GetUser } from '@/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { UserToClient } from './interfaces/users.interface';
 
-@Controller('users')
+@Controller('profile')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
