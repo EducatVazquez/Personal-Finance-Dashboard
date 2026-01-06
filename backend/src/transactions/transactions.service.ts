@@ -122,7 +122,7 @@ export class TransactionsService {
 
   async update(id: string, updateTransactionDto: UpdateTransactionDto, userId: string): Promise<Transactions> {
 
-    const updatedBalance = await this.userModel.findByIdAndUpdate(userId, { $inc: { balance: this.getAmountAccordingToTypeOfTransaction(updateTransactionDto.type, updateTransactionDto.amount) } });
+    await this.userModel.findByIdAndUpdate(userId, { $inc: { balance: this.getAmountAccordingToTypeOfTransaction(updateTransactionDto.type, updateTransactionDto.amount) } }).exec();
 
     const updatedTransaction = await this.transactionModel.findByIdAndUpdate(id, updateTransactionDto, { new: true }).exec();
 
