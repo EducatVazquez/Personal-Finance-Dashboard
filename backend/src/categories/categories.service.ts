@@ -57,10 +57,13 @@ export class CategoriesService {
     return category;
   }
 
-  findAll() {
+  findAll(userId: string) {
     return this.categoryModel.find(
       {
-        userId: null
+        $or: [
+          { userId: null },
+          { userId }
+        ]
       }
     ).exec();
   }
