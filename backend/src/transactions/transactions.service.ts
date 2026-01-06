@@ -71,6 +71,7 @@ export class TransactionsService {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(10)
+      .populate('category_id')
       .exec();
   }
 
