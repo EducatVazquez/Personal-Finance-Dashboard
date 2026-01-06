@@ -19,6 +19,12 @@ services:
     environment:
       - MONGO_URI=${MONGO_URI}
       - PORT=${PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - SALT_ROUNDS=${SALT_ROUNDS}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL}
+      - GOOGLE_AUTH_ENABLED=${GOOGLE_AUTH_ENABLED}
     volumes:
       - ./backend:/app
       - /app/node_modules
