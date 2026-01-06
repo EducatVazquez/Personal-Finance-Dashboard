@@ -2,9 +2,11 @@ import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/co
 /* import { OAuth2Client } from 'google-auth-library'; */
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UserDocument } from '@/users/interfaces/users.interface'; // Import the Document interface
+import { UserDocument, UserToClient } from '@/users/interfaces/users.interface'; // Import the Document interface
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +16,13 @@ export class AuthService {
     constructor(
         @InjectModel('User') private userModel: Model<UserDocument>, // Correct Type here
         private jwtService: JwtService,
+        private configService: ConfigService,
     ) { }
+
+    async hashPassword(password: string): Promise<string> {
+        const saltRounds = Number(this.configService.get<number>('SALT_ROUNDS', 10));
+        return bcrypt.hash(password, saltRounds);
+    }
 
     async authenticateGoogle(token: string) {
         try {
@@ -69,10 +77,12 @@ export class AuthService {
 
     async register(createUserDto: CreateUserDto) {
         try {
-            const user = await this.userModel.create(createUserDto);
+            const { password, ...rest } = createUserDto;
+            const hashedPassword = await this.hashPassword(password);
+            const user = await this.userModel.create({ ...rest, password: hashedPassword });
             const jwtPayload = { sub: user._id, email: user.email };
             return {
-                user,
+                user: user as UserToClient,
                 access_token: this.jwtService.sign(jwtPayload)
             };
         } catch (error) {
