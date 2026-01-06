@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { UserSchema } from '@/users/schemas/user.schema';
 import { JwtStrategy } from './jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
     imports: [
@@ -13,9 +14,13 @@ import { PassportModule } from '@nestjs/passport';
         PassportModule.register({ defaultStrategy: 'jwt' }),
         MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
         // 2. Configure JWT settings
-        JwtModule.register({
-            secret: process.env.JWT_SECRET || 'fallback_secret', // Use .env in production
-            signOptions: { expiresIn: '1d' }, // Token lasts 1 day
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService) => ({
+                secret: configService.get<string>('JWT_SECRET'),
+                signOptions: { expiresIn: '1d' },
+            }),
         })
     ],
     providers: [AuthService, JwtStrategy],
